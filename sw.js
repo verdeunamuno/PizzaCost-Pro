@@ -1,4 +1,3 @@
-
 const CACHE_NAME = 'noctambula-v1';
 const ASSETS = [
   './index.html',

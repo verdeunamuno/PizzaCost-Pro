@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Plus, Settings, Search, Trash2, Download, Upload, BarChart3, ShoppingCart, Banknote, Pizza as PizzaIcon, Beaker, FileUp, FileDown } from 'lucide-react';
 import { IngredientCost, Pizza, AppSettings, Ticket, Unit, PizzaIngredient } from './types';

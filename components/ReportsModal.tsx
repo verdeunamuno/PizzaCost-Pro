@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { X, Banknote, Package, BarChart3, Trash2, AlertTriangle, PieChart as PieChartIcon, TrendingUp, FileText, Printer } from 'lucide-react';
 import { Ticket, IngredientCost, AppSettings } from '../types';
@@ -19,6 +18,10 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, tickets, o
   const [ticketToDelete, setTicketToDelete] = useState<{id: string, number: number} | null>(null);
   const [isPreparingPDF, setIsPreparingPDF] = useState(false);
   const [chartImages, setChartImages] = useState<{ pie: string; bar: string } | null>(null);
+  
+  // Estado para la reimpresión de tickets
+  const [ticketToReprint, setTicketToReprint] = useState<Ticket | null>(null);
+  const [isReprintingPhase, setIsReprintingPhase] = useState(false);
   
   const pieChartRef = useRef<HTMLCanvasElement>(null);
   const barChartRef = useRef<HTMLCanvasElement>(null);
@@ -130,14 +133,22 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, tickets, o
     }
   }, [stats]);
 
+  // Lógica de reimpresión de ticket
+  useEffect(() => {
+    if (isReprintingPhase && ticketToReprint) {
+      const timer = setTimeout(() => {
+        window.print();
+        setIsReprintingPhase(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isReprintingPhase, ticketToReprint]);
+
   const handleExportPDF = () => {
     setIsPreparingPDF(true);
-    
-    // Capturar imágenes de los charts para el PDF
     const pieImg = pieChartRef.current?.toDataURL('image/png') || '';
     const barImg = barChartRef.current?.toDataURL('image/png') || '';
     setChartImages({ pie: pieImg, bar: barImg });
-
     setTimeout(() => {
       window.print();
       setIsPreparingPDF(false);
@@ -151,11 +162,15 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, tickets, o
     }
   };
 
+  const handleReprint = (ticket: Ticket) => {
+    setTicketToReprint(ticket);
+    setIsReprintingPhase(true);
+  };
+
   const periodText = period === 'daily' ? 'DIARIO' : period === 'weekly' ? 'SEMANAL' : period === 'monthly' ? 'MENSUAL' : 'ANUAL';
 
   const printableReport = ReactDOM.createPortal(
     <div className="printable-report-content" style={{ color: 'black' }}>
-      {/* HEADER CORPORATIVO */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '4px solid #fef01e', paddingBottom: '20px', marginBottom: '30px' }}>
         <div>
           <img src="https://www.noctambulapizza.com/wp-content/uploads/2024/05/NOCWEBFAV-02.png" alt="Logo" style={{ height: '60px', marginBottom: '10px' }} />
@@ -172,8 +187,6 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, tickets, o
           <p style={{ margin: 0, fontSize: '10px' }}>Fecha emisión: {new Date().toLocaleString()}</p>
         </div>
       </div>
-
-      {/* RESUMEN EJECUTIVO */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '40px' }}>
         <div style={{ background: '#f9f9f9', padding: '20px', borderRadius: '15px', border: '1px solid #eee' }}>
           <span style={{ fontSize: '10px', fontWeight: '900', color: '#888', textTransform: 'uppercase' }}>Ventas Brutas</span>
@@ -188,8 +201,6 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, tickets, o
           <div style={{ fontSize: '24px', fontWeight: '900', marginTop: '5px' }}>{stats.totalProfit.toFixed(2)}{settings.currency}</div>
         </div>
       </div>
-
-      {/* ANÁLISIS VISUAL */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '40px' }}>
         <div>
           <h3 style={{ fontSize: '11px', fontWeight: '900', borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '15px' }}>EL REY DE LA NOCHE</h3>
@@ -200,8 +211,6 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, tickets, o
           {chartImages?.bar && <img src={chartImages.bar} style={{ width: '100%', height: 'auto' }} alt="Bar Chart" />}
         </div>
       </div>
-
-      {/* TABLA MATERIALES */}
       <div>
         <h3 style={{ fontSize: '11px', fontWeight: '900', borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '15px' }}>DESGLOSE DE CONSUMO Y COSTES</h3>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
@@ -225,7 +234,6 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, tickets, o
           </tbody>
         </table>
       </div>
-
       <div style={{ marginTop: '50px', paddingTop: '20px', borderTop: '1px solid #eee', textAlign: 'center', fontSize: '10px', color: '#999' }}>
         Documento generado automáticamente por el Sistema Noctámbula Pro. Confidencial y de uso interno.
       </div>
@@ -233,18 +241,77 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, tickets, o
     document.getElementById('printable-report')!
   );
 
+  const qrUrl = "https://www.google.com/search?q=Noctambula+Pizza+Co+Reseñas";
+  
+  // Portal para reimpresión de ticket individual
+  const printableTicket = ticketToReprint && ReactDOM.createPortal(
+    <div className="printable-ticket-content">
+      <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+        <img src="https://www.noctambulapizza.com/wp-content/uploads/2024/05/NOCWEBFAV-02.png" alt="Logo" style={{ width: '30mm', marginBottom: '5px', display: 'block', margin: '0 auto' }} />
+        <h1 style={{ fontSize: '16px', fontWeight: '900', margin: '0' }}>NOCTÁMBULA PIZZA CO.</h1>
+        <p style={{ margin: '5px 0', fontSize: '9px' }}>
+          C/ 12 de octubre, 8, 14001 Córdoba<br />
+          CIF B56304413 | Tfno. 744793393<br />
+          info@NoctambulaPizza.com
+        </p>
+      </div>
+      
+      <div style={{ borderTop: '1px dashed black', borderBottom: '1px dashed black', padding: '5px 0', margin: '8px 0', fontSize: '10px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span>Ticket #{ticketToReprint.ticketNumber}</span>
+          <span>{new Date(ticketToReprint.date).toLocaleDateString()}</span>
+        </div>
+        <div style={{ textAlign: 'right', fontSize: '8px', marginTop: '2px' }}>
+          {new Date(ticketToReprint.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </div>
+      </div>
+
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
+        <tbody>
+          {ticketToReprint.items.map((item, idx) => (
+            <tr key={idx}>
+              <td style={{ padding: '3px 0' }}>{item.name} x{item.quantity}</td>
+              <td style={{ textAlign: 'right' }}>{(item.quantity * item.salePrice).toFixed(2)}€</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <div style={{ marginTop: '8px', borderTop: '1px solid black', paddingTop: '8px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px' }}>
+          <span>Base Imponible:</span>
+          <span>{(ticketToReprint.totalVenta / 1.10).toFixed(2)}€</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px' }}>
+          <span>IVA (10%):</span>
+          <span>{(ticketToReprint.totalVenta - (ticketToReprint.totalVenta / 1.10)).toFixed(2)}€</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: '900', marginTop: '4px' }}>
+          <span>TOTAL:</span>
+          <span>{ticketToReprint.totalVenta.toFixed(2)}€</span>
+        </div>
+      </div>
+
+      <div style={{ textAlign: 'center', marginTop: '15px', fontSize: '9px' }}>
+        <p style={{ marginBottom: '8px' }}>¡Danos tu opinión noctámbula!</p>
+        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(qrUrl)}`} alt="QR" style={{ width: '25mm', filter: 'contrast(1.5)', display: 'block', margin: '0 auto' }} />
+        <p style={{ marginTop: '12px', fontWeight: 'bold' }}>GRACIAS POR TU VISITA</p>
+      </div>
+    </div>,
+    document.getElementById('printable-ticket')!
+  );
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
       {printableReport}
+      {printableTicket}
       
       <div className="bg-zinc-950 w-full max-w-7xl h-[95vh] rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col border border-zinc-800 animate-in zoom-in duration-300 relative">
         
         {ticketToDelete && (
           <div className="absolute inset-0 z-[150] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-200">
             <div className="bg-zinc-900 p-10 rounded-[3rem] border border-zinc-800 text-center max-w-sm w-full shadow-3xl">
-              <div className="w-20 h-20 bg-red-600/10 text-red-600 rounded-[2rem] flex items-center justify-center mx-auto mb-8 border border-red-600/20">
-                <AlertTriangle className="w-10 h-10" />
-              </div>
+              <div className="w-20 h-20 bg-red-600/10 text-red-600 rounded-[2rem] flex items-center justify-center mx-auto mb-8 border border-red-600/20 shadow-lg shadow-red-900/10"><AlertTriangle className="w-10 h-10" /></div>
               <h3 className="text-2xl font-black text-white uppercase mb-3 tracking-tighter leading-none">¿Eliminar Ticket #{ticketToDelete.number}?</h3>
               <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-10 leading-relaxed">Esta acción restará la venta de los informes y es permanente.</p>
               <div className="flex gap-4">
@@ -362,9 +429,14 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, tickets, o
                     )}
                     
                     <div className="flex items-center gap-5 relative z-10">
-                       <button onClick={() => setTicketToDelete({id: t.id, number: t.ticketNumber})} className="p-3 bg-red-950/20 text-red-600 hover:bg-red-600 hover:text-white rounded-xl transition-all shadow-sm">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                       <div className="flex flex-col gap-2 items-center">
+                          <button onClick={() => setTicketToDelete({id: t.id, number: t.ticketNumber})} className="p-2.5 bg-red-950/20 text-red-600 hover:bg-red-600 hover:text-white rounded-lg transition-all shadow-sm">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button onClick={() => handleReprint(t)} className="p-2.5 bg-zinc-800 text-zinc-400 hover:bg-noctambula hover:text-black rounded-lg transition-all shadow-sm">
+                            <Printer className="w-3.5 h-3.5" />
+                          </button>
+                       </div>
                       <div>
                         <div className="text-[11px] font-black text-white uppercase flex items-center gap-2">
                           TICKET #{t.ticketNumber}

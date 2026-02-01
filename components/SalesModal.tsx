@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { X, ShoppingCart, Trash2, ReceiptText, Pizza as PizzaIcon, CheckCircle2, Search, Package, Plus, Minus, Printer } from 'lucide-react';
 import { Pizza, IngredientCost, AppSettings, Ticket, TicketItem } from '../types';
@@ -33,15 +32,13 @@ const SalesModal: React.FC<SalesModalProps> = ({ isOpen, onClose, pizzas, ingred
     }
   }, [orderItems]);
 
-  // LÓGICA DE IMPRESIÓN SEGURA:
-  // Este efecto vigila si hemos activado la fase de impresión.
-  // Solo cuando el ticket está listo en el "portal" de impresión, lanza el comando.
+  // LÓGICA DE IMPRESIÓN SEGURA
   useEffect(() => {
     if (isPrintingPhase && currentTicketForPrint) {
       const timer = setTimeout(() => {
         window.print();
-        setIsPrintingPhase(false); // Resetear fase
-      }, 300); // Pequeño delay para asegurar que el DOM está listo
+        setIsPrintingPhase(false);
+      }, 300);
       return () => clearTimeout(timer);
     }
   }, [isPrintingPhase, currentTicketForPrint]);
@@ -120,16 +117,15 @@ const SalesModal: React.FC<SalesModalProps> = ({ isOpen, onClose, pizzas, ingred
     onSaveTicket(newTicket);
     setShowSuccessToast(true);
     setOrderItems([]);
-    setIsPrintingPhase(true); // Iniciamos la secuencia de impresión segura
+    setIsPrintingPhase(true);
   };
 
   const qrUrl = "https://www.google.com/search?q=Noctambula+Pizza+Co+Reseñas";
 
-  // Este portal dibuja el ticket en el div oculto que definimos en index.html
   const renderPrintableTicket = currentTicketForPrint && ReactDOM.createPortal(
     <div className="printable-ticket-content">
       <div style={{ textAlign: 'center', marginBottom: '10px' }}>
-        <img src="https://www.noctambulapizza.com/wp-content/uploads/2024/05/NOCWEBFAV-02.png" alt="Logo" style={{ width: '30mm', marginBottom: '5px' }} />
+        <img src="https://www.noctambulapizza.com/wp-content/uploads/2024/05/NOCWEBFAV-02.png" alt="Logo" style={{ width: '30mm', marginBottom: '5px', display: 'block', margin: '0 auto' }} />
         <h1 style={{ fontSize: '16px', fontWeight: '900', margin: '0' }}>NOCTÁMBULA PIZZA CO.</h1>
         <p style={{ margin: '5px 0', fontSize: '9px' }}>
           C/ 12 de octubre, 8, 14001 Córdoba<br />
@@ -176,7 +172,7 @@ const SalesModal: React.FC<SalesModalProps> = ({ isOpen, onClose, pizzas, ingred
 
       <div style={{ textAlign: 'center', marginTop: '15px', fontSize: '9px' }}>
         <p style={{ marginBottom: '8px' }}>¡Danos tu opinión noctámbula!</p>
-        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(qrUrl)}`} alt="QR" style={{ width: '25mm', filter: 'contrast(1.5)' }} />
+        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(qrUrl)}`} alt="QR" style={{ width: '25mm', filter: 'contrast(1.5)', display: 'block', margin: '0 auto' }} />
         <p style={{ marginTop: '12px', fontWeight: 'bold' }}>GRACIAS POR TU VISITA</p>
       </div>
     </div>,
@@ -206,7 +202,6 @@ const SalesModal: React.FC<SalesModalProps> = ({ isOpen, onClose, pizzas, ingred
         </div>
 
         <div className="flex-1 flex overflow-hidden">
-          {/* Panel Izquierdo: Selección de Productos */}
           <div className="flex-1 flex flex-col p-8 overflow-hidden bg-zinc-950">
             <div className="flex items-center justify-between gap-6 mb-8">
               <div className="flex bg-zinc-900 p-1.5 rounded-2xl border border-zinc-800">
@@ -246,11 +241,10 @@ const SalesModal: React.FC<SalesModalProps> = ({ isOpen, onClose, pizzas, ingred
             </div>
           </div>
 
-          {/* Panel Derecho: Ticket de Venta */}
           <div className="w-[440px] bg-zinc-900 border-l border-zinc-800 flex flex-col shadow-2xl">
             <div className="p-8 border-b border-zinc-800 flex items-center justify-between">
               <div className="flex items-center gap-4"><ReceiptText className="w-6 h-6 text-noctambula" /><h3 className="text-xs font-black text-white uppercase tracking-widest">Resumen Ticket</h3></div>
-              <span className="bg-zinc-800 text-zinc-500 px-3 py-1 rounded-lg text-[9px] font-black">#{lastTicketNumber + 1}</span>
+              <span className="text-sm font-black text-zinc-300 uppercase tracking-tighter">#{lastTicketNumber + 1}</span>
             </div>
             
             <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">

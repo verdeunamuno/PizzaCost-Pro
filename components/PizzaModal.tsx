@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { X, Plus, Trash2, Search, Calculator, Database, Euro, Eye, EyeOff, Beaker, Sparkles, Brain, Loader2 } from 'lucide-react';
 import { Pizza, IngredientCost, PizzaIngredient, AppSettings, Unit } from '../types';
@@ -286,7 +285,7 @@ const PizzaModal: React.FC<PizzaModalProps> = ({ isOpen, onClose, onSubmit, init
                   <Sparkles className={`w-5 h-5 ${isLabMode ? 'text-purple-400' : 'text-noctambula'}`} />
                   <h3 className="text-xs font-black text-white uppercase tracking-widest">Consultoría IA Noctámbula</h3>
                 </div>
-                <div className={`text-[11px] leading-relaxed font-bold whitespace-pre-line p-6 rounded-[2rem] border shadow-2xl ${isLabMode ? 'text-purple-100/80 bg-zinc-950/50 border-purple-800' : 'text-zinc-200 bg-zinc-950 border-zinc-800 shadow-yellow-900/5'}`}>
+                <div className={`text-[11px] font-bold whitespace-pre-line p-6 rounded-[2rem] border shadow-2xl ${isLabMode ? 'text-purple-100/80 bg-zinc-950/50 border-purple-800' : 'text-zinc-200 bg-zinc-950 border-zinc-800 shadow-yellow-900/5'}`}>
                   {aiFeedback}
                 </div>
                 <button 

@@ -1,4 +1,3 @@
-
 export type Unit = 'Kg' | 'L' | 'Ud';
 
 export interface IngredientCost {
@@ -8,6 +7,8 @@ export interface IngredientCost {
   pricePerUnit: number;
   defaultSalePrice?: number;
   showInSales?: boolean;
+  currentStock?: number;
+  minStock?: number;
 }
 
 export interface PizzaIngredient {

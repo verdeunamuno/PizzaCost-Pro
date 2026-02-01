@@ -133,7 +133,7 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, tickets, o
     }
   }, [stats]);
 
-  // Lógica de reimpresión de ticket individual
+  // LÓGICA DE REIMPRESIÓN INDIVIDUAL
   useEffect(() => {
     if (isReprintingPhase && ticketToReprint) {
       const timer = setTimeout(() => {
@@ -156,7 +156,7 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, tickets, o
       window.print();
       document.body.classList.remove('printing-report');
       setIsPreparingPDF(false);
-    }, 500);
+    }, 600);
   };
 
   const confirmDelete = () => {
@@ -307,8 +307,9 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, tickets, o
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
-      {printableReport}
-      {printableTicket}
+      {/* EXCLUSIVIDAD DE PORTALES PARA EVITAR SOLAPAMIENTOS */}
+      {isPreparingPDF && printableReport}
+      {isReprintingPhase && printableTicket}
       
       <div className="bg-zinc-950 w-full max-w-7xl h-[95vh] rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col border border-zinc-800 animate-in zoom-in duration-300 relative">
         

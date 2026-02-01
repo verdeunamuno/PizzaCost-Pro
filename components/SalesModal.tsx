@@ -124,7 +124,7 @@ const SalesModal: React.FC<SalesModalProps> = ({ isOpen, onClose, pizzas, ingred
 
   const qrUrl = "https://www.google.com/search?q=Noctambula+Pizza+Co+Reseñas";
 
-  const renderPrintableTicket = currentTicketForPrint && ReactDOM.createPortal(
+  const renderPrintableTicket = isPrintingPhase && currentTicketForPrint && ReactDOM.createPortal(
     <div className="printable-ticket-content">
       <div style={{ textAlign: 'center', marginBottom: '10px' }}>
         <img src="https://www.noctambulapizza.com/wp-content/uploads/2024/05/NOCWEBFAV-02.png" alt="Logo" style={{ width: '30mm', marginBottom: '5px', display: 'block', margin: '0 auto' }} />

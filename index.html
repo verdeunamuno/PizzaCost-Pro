@@ -27,7 +27,7 @@
         .text-noctambula { color: #fef01e; }
         .border-noctambula { border-color: #fef01e; }
         
-        #printable-ticket, #printable-report { display: none; }
+        #printable-ticket, #printable-report { display: none !important; }
 
         @media print {
             #root { display: none !important; }
@@ -39,7 +39,9 @@
                 left: 0; top: 0; width: 80mm;
                 background: white; color: black; padding: 5mm;
                 font-family: 'Courier New', Courier, monospace; font-size: 12px;
+                z-index: 9999;
             }
+            body.printing-ticket #printable-report { display: none !important; }
 
             /* Solo mostrar informe si el body tiene la clase */
             body.printing-report #printable-report {
@@ -51,7 +53,9 @@
                 padding: 15mm;
                 margin: 0;
                 font-family: 'Inter', sans-serif;
+                z-index: 9999;
             }
+            body.printing-report #printable-ticket { display: none !important; }
 
             @page { 
                 margin: 0; 

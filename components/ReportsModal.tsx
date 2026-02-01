@@ -1,8 +1,9 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { X, Banknote, Package, BarChart3, Trash2, AlertTriangle, PieChart as PieChartIcon, TrendingUp } from 'lucide-react';
+import { X, Banknote, Package, BarChart3, Trash2, AlertTriangle, PieChart as PieChartIcon, TrendingUp, FileText, Printer } from 'lucide-react';
 import { Ticket, IngredientCost, AppSettings } from '../types';
 import Chart from 'chart.js/auto';
+import ReactDOM from 'react-dom';
 
 interface ReportsModalProps {
   isOpen: boolean;
@@ -16,6 +17,8 @@ interface ReportsModalProps {
 const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, tickets, onDeleteTicket, ingredientsCosts, settings }) => {
   const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'annual'>('daily');
   const [ticketToDelete, setTicketToDelete] = useState<{id: string, number: number} | null>(null);
+  const [isPreparingPDF, setIsPreparingPDF] = useState(false);
+  const [chartImages, setChartImages] = useState<{ pie: string; bar: string } | null>(null);
   
   const pieChartRef = useRef<HTMLCanvasElement>(null);
   const barChartRef = useRef<HTMLCanvasElement>(null);
@@ -73,10 +76,8 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, tickets, o
   }, [filteredTickets, ingredientsCosts]);
 
   useEffect(() => {
-    // Gráfico Rey de la Noche
     if (pieChartRef.current && Object.keys(stats.productSales).length > 0) {
       if (pieChartInstance.current) pieChartInstance.current.destroy();
-      // Fix: Casting entries explicitly to [string, number][] to avoid arithmetic type errors during sort (e.g., b[1] - a[1])
       const entries = (Object.entries(stats.productSales) as [string, number][]).sort((a,b) => b[1] - a[1]).slice(0, 6);
       pieChartInstance.current = new Chart(pieChartRef.current, {
         type: 'doughnut',
@@ -90,6 +91,7 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, tickets, o
           }]
         },
         options: {
+          animation: { duration: 0 },
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
@@ -100,7 +102,6 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, tickets, o
       });
     }
 
-    // Gráfico de Barras Ventas vs Gastos
     if (barChartRef.current && Object.keys(stats.dailyStats).length > 0) {
       if (barChartInstance.current) barChartInstance.current.destroy();
       const dates = Object.keys(stats.dailyStats).slice(-7);
@@ -114,6 +115,7 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, tickets, o
           ]
         },
         options: {
+          animation: { duration: 0 },
           responsive: true,
           maintainAspectRatio: false,
           scales: {
@@ -128,6 +130,20 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, tickets, o
     }
   }, [stats]);
 
+  const handleExportPDF = () => {
+    setIsPreparingPDF(true);
+    
+    // Capturar imágenes de los charts para el PDF
+    const pieImg = pieChartRef.current?.toDataURL('image/png') || '';
+    const barImg = barChartRef.current?.toDataURL('image/png') || '';
+    setChartImages({ pie: pieImg, bar: barImg });
+
+    setTimeout(() => {
+      window.print();
+      setIsPreparingPDF(false);
+    }, 500);
+  };
+
   const confirmDelete = () => {
     if (ticketToDelete) {
       onDeleteTicket(ticketToDelete.id);
@@ -135,8 +151,92 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, tickets, o
     }
   };
 
+  const periodText = period === 'daily' ? 'DIARIO' : period === 'weekly' ? 'SEMANAL' : period === 'monthly' ? 'MENSUAL' : 'ANUAL';
+
+  const printableReport = ReactDOM.createPortal(
+    <div className="printable-report-content" style={{ color: 'black' }}>
+      {/* HEADER CORPORATIVO */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '4px solid #fef01e', paddingBottom: '20px', marginBottom: '30px' }}>
+        <div>
+          <img src="https://www.noctambulapizza.com/wp-content/uploads/2024/05/NOCWEBFAV-02.png" alt="Logo" style={{ height: '60px', marginBottom: '10px' }} />
+          <h1 style={{ margin: 0, fontSize: '24px', fontWeight: '900' }}>NOCTÁMBULA PIZZA CO.</h1>
+          <p style={{ margin: '5px 0', fontSize: '11px', color: '#666' }}>
+            SISTEMA DE GESTIÓN PROFESIONAL<br />
+            C/ 12 de octubre, 8, 14001 Córdoba<br />
+            CIF B56304413 | Tfno. 744793393
+          </p>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '900', color: '#ca8a04' }}>INFORME DE GESTIÓN</h2>
+          <p style={{ margin: '5px 0', fontSize: '14px', fontWeight: 'bold' }}>PERIODO {periodText}</p>
+          <p style={{ margin: 0, fontSize: '10px' }}>Fecha emisión: {new Date().toLocaleString()}</p>
+        </div>
+      </div>
+
+      {/* RESUMEN EJECUTIVO */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '40px' }}>
+        <div style={{ background: '#f9f9f9', padding: '20px', borderRadius: '15px', border: '1px solid #eee' }}>
+          <span style={{ fontSize: '10px', fontWeight: '900', color: '#888', textTransform: 'uppercase' }}>Ventas Brutas</span>
+          <div style={{ fontSize: '24px', fontWeight: '900', marginTop: '5px' }}>{stats.totalVenta.toFixed(2)}{settings.currency}</div>
+        </div>
+        <div style={{ background: '#f9f9f9', padding: '20px', borderRadius: '15px', border: '1px solid #eee' }}>
+          <span style={{ fontSize: '10px', fontWeight: '900', color: '#888', textTransform: 'uppercase' }}>Costo Producción</span>
+          <div style={{ fontSize: '24px', fontWeight: '900', marginTop: '5px', color: '#ef4444' }}>{stats.totalCosto.toFixed(2)}{settings.currency}</div>
+        </div>
+        <div style={{ background: '#fef01e33', padding: '20px', borderRadius: '15px', border: '2px solid #fef01e' }}>
+          <span style={{ fontSize: '10px', fontWeight: '900', color: '#ca8a04', textTransform: 'uppercase' }}>Margen Neto</span>
+          <div style={{ fontSize: '24px', fontWeight: '900', marginTop: '5px' }}>{stats.totalProfit.toFixed(2)}{settings.currency}</div>
+        </div>
+      </div>
+
+      {/* ANÁLISIS VISUAL */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '40px' }}>
+        <div>
+          <h3 style={{ fontSize: '11px', fontWeight: '900', borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '15px' }}>EL REY DE LA NOCHE</h3>
+          {chartImages?.pie && <img src={chartImages.pie} style={{ width: '100%', height: 'auto' }} alt="Pie Chart" />}
+        </div>
+        <div>
+          <h3 style={{ fontSize: '11px', fontWeight: '900', borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '15px' }}>BALANCE DIARIO</h3>
+          {chartImages?.bar && <img src={chartImages.bar} style={{ width: '100%', height: 'auto' }} alt="Bar Chart" />}
+        </div>
+      </div>
+
+      {/* TABLA MATERIALES */}
+      <div>
+        <h3 style={{ fontSize: '11px', fontWeight: '900', borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '15px' }}>DESGLOSE DE CONSUMO Y COSTES</h3>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
+          <thead>
+            <tr style={{ textAlign: 'left', background: '#f9f9f9' }}>
+              <th style={{ padding: '10px' }}>Producto / Ingrediente</th>
+              <th style={{ padding: '10px' }}>Cantidad</th>
+              <th style={{ padding: '10px', textAlign: 'right' }}>Costo Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(Object.entries(stats.ingredientUsage) as [string, any][])
+              .sort((a,b) => b[1].cost - a[1].cost)
+              .map(([name, data]) => (
+                <tr key={name} style={{ borderBottom: '1px solid #eee' }}>
+                  <td style={{ padding: '10px', fontWeight: 'bold' }}>{name}</td>
+                  <td style={{ padding: '10px' }}>{data.amount.toFixed(3)} {data.unit}</td>
+                  <td style={{ padding: '10px', textAlign: 'right', fontWeight: 'bold' }}>{data.cost.toFixed(2)}{settings.currency}</td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div style={{ marginTop: '50px', paddingTop: '20px', borderTop: '1px solid #eee', textAlign: 'center', fontSize: '10px', color: '#999' }}>
+        Documento generado automáticamente por el Sistema Noctámbula Pro. Confidencial y de uso interno.
+      </div>
+    </div>,
+    document.getElementById('printable-report')!
+  );
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+      {printableReport}
+      
       <div className="bg-zinc-950 w-full max-w-7xl h-[95vh] rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col border border-zinc-800 animate-in zoom-in duration-300 relative">
         
         {ticketToDelete && (
@@ -162,7 +262,16 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, tickets, o
             </div>
             <h2 className="text-xl font-black text-white uppercase tracking-tighter">Caja Registradora / Análisis Visual</h2>
           </div>
-          <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors"><X className="w-8 h-8" /></button>
+          <div className="flex items-center gap-3">
+             <button 
+              onClick={handleExportPDF}
+              className={`flex items-center gap-2 px-6 py-2.5 bg-noctambula text-black rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 shadow-xl hover:bg-[#e2d71a] ${isPreparingPDF ? 'opacity-50' : ''}`}
+            >
+              {isPreparingPDF ? <Printer className="w-4 h-4 animate-bounce" /> : <FileText className="w-4 h-4" />}
+              <span>{isPreparingPDF ? 'Preparando...' : 'Exportar PDF'}</span>
+            </button>
+            <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors ml-4"><X className="w-8 h-8" /></button>
+          </div>
         </div>
 
         <div className="p-8 flex-1 overflow-y-auto custom-scrollbar">
@@ -248,7 +357,6 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, tickets, o
                 {filteredTickets.slice().reverse().map(t => (
                   <div key={t.id} className={`flex items-center justify-between p-5 rounded-2xl border transition-all group relative overflow-hidden ${t.isGlovo ? 'bg-yellow-500/5 border-yellow-500/30 hover:border-yellow-500' : 'bg-zinc-950 border-zinc-900 hover:border-zinc-700'}`}>
                     
-                    {/* LETRA G GIGANTE PARA TICKETS GLOVO */}
                     {t.isGlovo && (
                       <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[100px] font-black text-yellow-500/10 pointer-events-none select-none italic z-0 leading-none">G</span>
                     )}

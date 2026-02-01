@@ -27,9 +27,13 @@
         .bg-noctambula { background-color: #fef01e; }
         .text-noctambula { color: #fef01e; }
         .border-noctambula { border-color: #fef01e; }
-        #printable-ticket { display: none; }
+        
+        #printable-ticket, #printable-report { display: none; }
+
         @media print {
             #root { display: none !important; }
+            
+            /* Ticket Estilo */
             #printable-ticket {
                 display: block !important;
                 position: fixed;
@@ -37,7 +41,25 @@
                 background: white; color: black; padding: 5mm;
                 font-family: 'Courier New', Courier, monospace; font-size: 12px;
             }
-            @page { margin: 0; size: 80mm auto; }
+
+            /* Informe Estilo A4 */
+            #printable-report {
+                display: block !important;
+                background: white;
+                color: black;
+                width: 210mm;
+                min-height: 297mm;
+                padding: 15mm;
+                margin: 0;
+                font-family: 'Inter', sans-serif;
+            }
+
+            @page { 
+                margin: 0; 
+                size: auto; 
+            }
+            
+            .no-print { display: none !important; }
         }
     </style>
 <script type="importmap">
@@ -60,6 +82,7 @@
 <body>
     <div id="root"></div>
     <div id="printable-ticket"></div>
+    <div id="printable-report"></div>
     <script type="module" src="/index.tsx"></script>
     <script>
       window.deferredPrompt = null;

@@ -1,5 +1,5 @@
 {
-  "name": "PizzaCost Pro",
-  "description": "Una aplicación profesional para la gestión de costes y recetas de pizzerías, con control dinámico de ingredientes e importación/exportación de datos.",
+  "name": "pizzacost-pro",
+  "description": "Sistema de gestión profesional para Noctámbula Pizza Co. Control de costes, recetas, laboratorio experimental y gestión de ventas.",
   "requestFramePermissions": []
 }

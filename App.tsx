@@ -254,9 +254,13 @@ const App: React.FC = () => {
               </button>
             </div>
             <div className="flex items-center gap-1 pl-1">
-              <button onClick={handleExportExcel} className="p-2 hover:bg-zinc-800 rounded-lg transition-all" title="Exportar Excel"><FileDown className="w-4 h-4 text-noctambula" /></button>
-              <label className="p-2 hover:bg-zinc-800 rounded-lg transition-all cursor-pointer" title="Importar Excel">
-                <FileUp className="w-4 h-4 text-noctambula" />
+              <button onClick={handleExportExcel} className="flex items-center gap-1 px-2 py-1.5 hover:bg-zinc-800 rounded-lg transition-all" title="Exportar Excel">
+                <FileDown className="w-3.5 h-3.5 text-noctambula" />
+                <span className="text-[7px] font-black text-noctambula uppercase">EXP. EXCEL</span>
+              </button>
+              <label className="flex items-center gap-1 px-2 py-1.5 hover:bg-zinc-800 rounded-lg transition-all cursor-pointer" title="Importar Excel">
+                <FileUp className="w-3.5 h-3.5 text-noctambula" />
+                <span className="text-[7px] font-black text-noctambula uppercase">IMP. EXCEL</span>
                 <input type="file" className="hidden" accept=".xlsx" onChange={handleImportExcel} />
               </label>
               
@@ -288,7 +292,7 @@ const App: React.FC = () => {
         <div className="flex items-end justify-between mb-12 border-b border-zinc-800/50 pb-8">
           <div>
             <h2 className={`text-2xl font-black uppercase tracking-tighter leading-none ${isLabMode ? 'text-purple-400' : 'text-white'}`}>
-              {isLabMode ? 'Pizzería Experimental' : 'Control de gastos y beneficios'}
+              {isLabMode ? 'Pizzería Experimental' : 'Gestión Noctámbula'}
             </h2>
             <div className="flex items-center gap-3 mt-4">
               <div className={`h-1 w-12 rounded-full ${isLabMode ? 'bg-purple-600' : 'bg-noctambula'}`}></div>
